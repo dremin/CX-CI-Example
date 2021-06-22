@@ -3,6 +3,8 @@ name: Apply Configuration
 on:
   push:
     branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
 
 jobs:
   publish:
@@ -38,11 +40,19 @@ jobs:
           echo "GENESYSCLOUD_OAUTHCLIENT_ID=${{ secrets.PROD_CLIENT_ID }}" >> $GITHUB_ENV
           echo "GENESYSCLOUD_OAUTHCLIENT_SECRET=${{ secrets.PROD_CLIENT_SECRET }}" >> $GITHUB_ENV
 
+      - name: Validate format
+        run: terraform fmt -check
+
       - name: Initialize Terraform
         run: |
           terraform init \
           -backend-config="bucket=$STATE_BUCKET" \
           -backend-config="dynamodb_table=$STATE_TABLE"
 
+      - name: Plan configuration
+        if: github.event_name == 'pull_request'
+        run: terraform plan
+
       - name: Apply configuration
-        run: "terraform apply -auto-approve"
+        if: github.event_name == 'push'
+        run: terraform apply -auto-approve
