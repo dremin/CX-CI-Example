@@ -17,7 +17,7 @@ jobs:
           fetch-depth: 0
 
       - name: Set environment variables (dev)
-        if: ${{ github.ref == 'refs/heads/develop' }}
+        if: (github.ref == 'refs/heads/develop' && github.event_name == 'push') || (github.base_ref == 'develop' && github.event_name == 'pull_request')
         run: |
           echo "AWS_REGION=us-east-1" >> $GITHUB_ENV
           echo "AWS_ACCESS_KEY_ID=${{ secrets.DEV_AWS_KEY_ID }}" >> $GITHUB_ENV
@@ -29,7 +29,7 @@ jobs:
           echo "GENESYSCLOUD_OAUTHCLIENT_SECRET=${{ secrets.DEV_CLIENT_SECRET }}" >> $GITHUB_ENV
 
       - name: Set environment variables (prod)
-        if: ${{ github.ref == 'refs/heads/main' }}
+        if: (github.ref == 'refs/heads/main' && github.event_name == 'push') || (github.base_ref == 'main' && github.event_name == 'pull_request')
         run: |
           echo "AWS_REGION=us-east-1" >> $GITHUB_ENV
           echo "AWS_ACCESS_KEY_ID=${{ secrets.PROD_AWS_KEY_ID }}" >> $GITHUB_ENV
