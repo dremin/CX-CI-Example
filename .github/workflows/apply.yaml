@@ -40,9 +40,6 @@ jobs:
           echo "GENESYSCLOUD_OAUTHCLIENT_ID=${{ secrets.PROD_CLIENT_ID }}" >> $GITHUB_ENV
           echo "GENESYSCLOUD_OAUTHCLIENT_SECRET=${{ secrets.PROD_CLIENT_SECRET }}" >> $GITHUB_ENV
 
-      - name: Validate format
-        run: terraform fmt -check
-
       - name: Initialize Terraform
         run: |
           terraform init \
