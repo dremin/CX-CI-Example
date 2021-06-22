@@ -1,0 +1,55 @@
+name: Apply Configuration
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Set environment variables (dev)
+        if: (github.ref == 'refs/heads/develop' && github.event_name == 'push') || (github.base_ref == 'develop' && github.event_name == 'pull_request')
+        run: |
+          echo "AWS_REGION=us-east-1" >> $GITHUB_ENV
+          echo "AWS_ACCESS_KEY_ID=${{ secrets.DEV_AWS_KEY_ID }}" >> $GITHUB_ENV
+          echo "AWS_SECRET_ACCESS_KEY=${{ secrets.DEV_AWS_KEY_SECRET }}" >> $GITHUB_ENV
+          echo "STATE_BUCKET=dev-johnson-widgets-terraform" >> $GITHUB_ENV
+          echo "STATE_TABLE=dev-johnson-widgets-terraform-lock" >> $GITHUB_ENV
+          echo "GENESYSCLOUD_REGION=us-east-1" >> $GITHUB_ENV
+          echo "GENESYSCLOUD_OAUTHCLIENT_ID=${{ secrets.DEV_CLIENT_ID }}" >> $GITHUB_ENV
+          echo "GENESYSCLOUD_OAUTHCLIENT_SECRET=${{ secrets.DEV_CLIENT_SECRET }}" >> $GITHUB_ENV
+
+      - name: Set environment variables (prod)
+        if: (github.ref == 'refs/heads/main' && github.event_name == 'push') || (github.base_ref == 'main' && github.event_name == 'pull_request')
+        run: |
+          echo "AWS_REGION=us-east-1" >> $GITHUB_ENV
+          echo "AWS_ACCESS_KEY_ID=${{ secrets.PROD_AWS_KEY_ID }}" >> $GITHUB_ENV
+          echo "AWS_SECRET_ACCESS_KEY=${{ secrets.PROD_AWS_KEY_SECRET }}" >> $GITHUB_ENV
+          echo "STATE_BUCKET=johnson-widgets-terraform" >> $GITHUB_ENV
+          echo "STATE_TABLE=johnson-widgets-terraform-lock" >> $GITHUB_ENV
+          echo "GENESYSCLOUD_REGION=us-east-1" >> $GITHUB_ENV
+          echo "GENESYSCLOUD_OAUTHCLIENT_ID=${{ secrets.PROD_CLIENT_ID }}" >> $GITHUB_ENV
+          echo "GENESYSCLOUD_OAUTHCLIENT_SECRET=${{ secrets.PROD_CLIENT_SECRET }}" >> $GITHUB_ENV
+
+      - name: Initialize Terraform
+        run: |
+          terraform init \
+          -backend-config="bucket=$STATE_BUCKET" \
+          -backend-config="dynamodb_table=$STATE_TABLE"
+
+      - name: Plan configuration
+        if: github.event_name == 'pull_request'
+        run: terraform plan
+
+      - name: Apply configuration
+        if: github.event_name == 'push'
+        run: terraform apply -auto-approve
