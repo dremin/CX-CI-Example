@@ -39,8 +39,8 @@ Apart from credentials, the CI needs to know which AWS region(s), state storage 
 This repository contains two branches: `main` and `develop`. The GitHub action is configured to apply configuration to a different Genesys Cloud organization depending on the branch that is pushed. A basic code elevation process might look like this:
 
 1. A developer works within their own branch.
-2. The developer opens a pull request to merge into the `develop` branch, which will automatically validate their configuration.
+2. The developer opens a pull request to merge into the `develop` branch, which will automatically plan the configuration changes.
 3. After the PR is merged and pushed to `develop`, Terraform will apply the configuration to the configured development/staging Genesys Cloud org.
-4. After functionality is verified in the dev org and ready to deploy to production, a pull request is opened to merge from the `develop` branch to the `main` branch.
+4. After functionality is verified in the dev org and ready to deploy to production, a pull request is opened to merge from the `develop` branch to the `main` branch, which will automatically plan the configuration changes.
 5. After the PR is merged and pushed to `main`, Terraform will apply the configuration to the production Genesys Cloud org.
 6. The new configuration is now in production.
